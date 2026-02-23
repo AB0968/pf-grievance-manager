@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0F172A">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>PF Grievance Manager</title>
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUEYgR3JpZXZhbmNlIE1hbmFnZXIiLCJzaG9ydF9uYW1lIjoiUEYgTWFuYWdlciIsInN0YXJ0X3VybCI6Ii8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMEYxNzJBIiwidGhlbWVfY29sb3IiOiIjMEYxNzJBIn0=">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        :root {
+            --slate-950: #020617;
+            --slate-900: #0F172A;
+            --slate-800: #1E293B;
+            --slate-700: #334155;
+            --slate-600: #475569;
+            --slate-500: #64748B;
+            --slate-400: #94A3B8;
+            --slate-300: #CBD5E1;
+            --slate-200: #E2E8F0;
+            --slate-100: #F1F5F9;
+            --slate-50: #F8FAFC;
+            
+            --blue-600: #2563EB;
+            --blue-500: #3B82F6;
+            --blue-400: #60A5FA;
+            
+            --emerald-600: #059669;
+            --emerald-500: #10B981;
+            --emerald-400: #34D399;
+            
+            --amber-600: #D97706;
+            --amber-500: #F59E0B;
+            --amber-400: #FBBF24;
+            
+            --red-600: #DC2626;
+            --red-500: #EF4444;
+        }
+        
+        body {
+            font-family: 'Archivo', -apple-system, sans-serif;
+            background: var(--slate-950);
+            color: var(--slate-100);
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* Animated background gradient */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+            animation: gradientShift 20s ease infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--slate-900) 0%, var(--slate-800) 100%);
+            padding: 20px 20px 24px;
+            border-bottom: 1px solid var(--slate-800);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--blue-500), var(--blue-600));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 20px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--slate-50);
+        }
+        
+        .sync-status {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--emerald-400);
+            background: rgba(16, 185, 129, 0.1);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .sync-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--emerald-400);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        
+        .stat-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid var(--slate-700);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:active {
+            transform: scale(0.95);
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+        
+        .stat-card.total .stat-value { color: var(--blue-400); }
+        .stat-card.pending .stat-value { color: var(--amber-400); }
+        .stat-card.resolved .stat-value { color: var(--emerald-400); }
+        
+        .stat-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--slate-400);
+        }
+        
+        /* Search & Filter Bar */
+        .toolbar {
+            padding: 16px 20px;
+            background: var(--slate-900);
+            border-bottom: 1px solid var(--slate-800);
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-box {
+            flex: 1;
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            background: var(--slate-800);
+            border: 1px solid var(--slate-700);
+            border-radius: 10px;
+            padding: 12px 16px 12px 44px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 15px;
+            color: var(--slate-100);
+            transition: all 0.2s ease;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--blue-500);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--slate-500);
+            font-size: 18px;
+        }
+        
+        .filter-btn {
+            background: var(--slate-800);
+            border: 1px solid var(--slate-700);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: var(--slate-300);
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .filter-btn:active {
+            background: var(--slate-700);
+            transform: scale(0.95);
+        }
+        
+        .filter-btn.active {
+            background: var(--blue-600);
+            border-color: var(--blue-500);
+            color: white;
+        }
+        
+        /* Main Content */
+        .content {
+            padding: 20px;
+        }
+        
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--slate-500);
+            margin-bottom: 12px;
+            padding-left: 4px;
+        }
+        
+        /* Grievance Cards */
+        .grievance-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .grievance-card {
+            background: linear-gradient(135deg, var(--slate-900) 0%, var(--slate-800) 100%);
+            border: 1px solid var(--slate-700);
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .grievance-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .grievance-card.pending::before { background: var(--amber-500); }
+        .grievance-card.resolved::before { background: var(--emerald-500); }
+        
+        .grievance-card:active {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        
+        .customer-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--slate-50);
+            margin-bottom: 4px;
+        }
+        
+        .grievance-no {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--slate-500);
+            font-weight: 600;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-badge.pending {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--amber-400);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        
+        .status-badge.resolved {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--emerald-400);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .card-details {
+            display: grid;
+            gap: 8px;
+        }
+        
+        .detail-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .detail-icon {
+            color: var(--slate-500);
+            width: 16px;
+            text-align: center;
+        }
+        
+        .detail-text {
+            color: var(--slate-300);
+        }
+        
+        .issue-type {
+            display: inline-block;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--blue-400);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        
+        /* FAB Button */
+        .fab {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--blue-500), var(--blue-600));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 90;
+        }
+        
+        .fab:active {
+            transform: scale(0.9);
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--slate-900);
+            border-top: 1px solid var(--slate-800);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
+            z-index: 100;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--slate-500);
+        }
+        
+        .nav-item.active {
+            color: var(--blue-400);
+        }
+        
+        .nav-icon {
+            font-size: 22px;
+        }
+        
+        .nav-label {
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(2, 6, 23, 0.95);
+            z-index: 200;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: flex-end;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            background: var(--slate-900);
+            border-radius: 24px 24px 0 0;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        
+        .modal-header {
+            padding: 24px 20px 20px;
+            border-bottom: 1px solid var(--slate-800);
+            position: sticky;
+            top: 0;
+            background: var(--slate-900);
+            z-index: 10;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--slate-50);
+            margin-bottom: 8px;
+        }
+        
+        .modal-subtitle {
+            font-size: 14px;
+            color: var(--slate-400);
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--slate-800);
+            border: none;
+            color: var(--slate-300);
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .modal-close:active {
+            background: var(--slate-700);
+            transform: scale(0.9);
+        }
+        
+        .modal-body {
+            padding: 24px 20px;
+        }
+        
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--slate-400);
+            margin-bottom: 8px;
+        }
+        
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            background: var(--slate-800);
+            border: 1px solid var(--slate-700);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 16px;
+            color: var(--slate-100);
+            transition: all 0.2s ease;
+        }
+        
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--blue-500);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            font-family: 'Archivo', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--blue-500), var(--blue-600));
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+        }
+        
+        .btn-secondary {
+            background: var(--slate-800);
+            color: var(--slate-300);
+            border: 1px solid var(--slate-700);
+        }
+        
+        .btn-secondary:active {
+            background: var(--slate-700);
+        }
+        
+        /* Detail View */
+        .detail-section {
+            margin-bottom: 28px;
+        }
+        
+        .section-header {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--slate-500);
+            margin-bottom: 12px;
+            padding-left: 4px;
+        }
+        
+        .info-grid {
+            background: var(--slate-800);
+            border: 1px solid var(--slate-700);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--slate-700);
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-size: 13px;
+            color: var(--slate-500);
+            font-weight: 600;
+        }
+        
+        .info-value {
+            font-size: 14px;
+            color: var(--slate-100);
+            font-weight: 600;
+            text-align: right;
+        }
+        
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 24px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 8px;
+            bottom: 8px;
+            width: 2px;
+            background: var(--slate-700);
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -21px;
+            top: 4px;
+            width: 12px;
+            height: 12px;
+            background: var(--blue-500);
+            border: 3px solid var(--slate-900);
+            border-radius: 50%;
+            box-shadow: 0 0 0 2px var(--slate-700);
+        }
+        
+        .timeline-date {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--slate-500);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .timeline-message {
+            background: var(--slate-800);
+            border: 1px solid var(--slate-700);
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 14px;
+            color: var(--slate-200);
+            line-height: 1.5;
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        
+        .action-btn {
+            background: var(--slate-800);
+            border: 1px solid var(--slate-700);
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--slate-300);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--emerald-600), var(--emerald-500));
+            color: white;
+            border-color: var(--emerald-500);
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+        
+        .empty-text {
+            font-size: 16px;
+            color: var(--slate-500);
+        }
+        
+        /* Loading State */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--slate-700);
+            border-top-color: var(--blue-500);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Document Section */
+        .document-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .document-item {
+            background: var(--slate-800);
+            border: 1px solid var(--slate-700);
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+        
+        .document-item:active {
+            background: var(--slate-700);
+        }
+        
+        .doc-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        
+        .doc-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--blue-600), var(--blue-500));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        
+        .doc-details {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .doc-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--slate-100);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 2px;
+        }
+        
+        .doc-meta {
+            font-size: 11px;
+            color: var(--slate-500);
+        }
+        
+        .doc-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .doc-action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: var(--slate-700);
+            border: none;
+            color: var(--slate-300);
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .doc-action-btn:active {
+            background: var(--slate-600);
+            transform: scale(0.9);
+        }
+        
+        .upload-area {
+            background: var(--slate-800);
+            border: 2px dashed var(--slate-700);
+            border-radius: 12px;
+            padding: 32px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 16px;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--blue-500);
+            background: rgba(37, 99, 235, 0.05);
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+        
+        .upload-text {
+            font-size: 14px;
+            color: var(--slate-400);
+            margin-bottom: 4px;
+        }
+        
+        .upload-hint {
+            font-size: 12px;
+            color: var(--slate-500);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        /* Document Viewer */
+        .doc-viewer {
+            background: var(--slate-950);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            max-height: 400px;
+            overflow: auto;
+        }
+        
+        .doc-viewer img {
+            width: 100%;
+            border-radius: 8px;
+            display: block;
+        }
+        
+        .doc-viewer-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--slate-300);
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <div class="logo">
+                    <div class="logo-icon">PF</div>
+                    <div class="logo-text">Grievance Manager</div>
+                </div>
+                <div class="sync-status">
+                    <div class="sync-dot"></div>
+                    <span>OFFLINE</span>
+                </div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card total">
+                    <div class="stat-value" id="totalCount">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card pending">
+                    <div class="stat-value" id="pendingCount">0</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+                <div class="stat-card resolved">
+                    <div class="stat-value" id="resolvedCount">0</div>
+                    <div class="stat-label">Resolved</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" id="searchInput" placeholder="Search by name, UAN, mobile...">
+            </div>
+            <button class="filter-btn" id="filterBtn">⚡</button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <div class="section-title">Recent Cases</div>
+            <div class="grievance-list" id="grievanceList"></div>
+        </div>
+
+        <!-- FAB Button -->
+        <div class="fab" id="addBtn">+</div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item active">
+                <div class="nav-icon">📋</div>
+                <div class="nav-label">Cases</div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">📊</div>
+                <div class="nav-label">Reports</div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">⚙️</div>
+                <div class="nav-label">Settings</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal" id="addModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">New Grievance</h2>
+                <p class="modal-subtitle">Fill in the details below</p>
+                <button class="modal-close" id="closeAddModal">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="grievanceForm">
+                    <div class="form-group">
+                        <label class="form-label">Customer Name</label>
+                        <input type="text" class="form-input" id="inputName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">UAN (12 digits)</label>
+                        <input type="text" class="form-input" id="inputUAN" maxlength="12" pattern="[0-9]{12}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mobile (10 digits)</label>
+                        <input type="tel" class="form-input" id="inputMobile" maxlength="10" pattern="[0-9]{10}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">PF Office</label>
+                        <select class="form-select" id="inputOffice" required>
+                            <option value="">Select Office</option>
+                            <option value="Lucknow">Lucknow</option>
+                            <option value="Kanpur">Kanpur</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Mumbai">Mumbai</option>
+                            <option value="Bengaluru">Bengaluru</option>
+                            <option value="Chennai">Chennai</option>
+                            <option value="Kolkata">Kolkata</option>
+                            <option value="Hyderabad">Hyderabad</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Issue Type</label>
+                        <select class="form-select" id="inputIssue" required>
+                            <option value="">Select Issue</option>
+                            <option value="Transfer issue">Transfer issue</option>
+                            <option value="Name correction">Name correction</option>
+                            <option value="Withdrawal pending">Withdrawal pending</option>
+                            <option value="KYC issue">KYC issue</option>
+                            <option value="Claim rejected">Claim rejected</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Initial Message</label>
+                        <textarea class="form-textarea" id="inputMessage" placeholder="Describe the issue..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Grievance</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="detailName">Customer Name</h2>
+                <p class="modal-subtitle" id="detailGrievanceNo">GRV001</p>
+                <button class="modal-close" id="closeDetailModal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-section">
+                    <div class="section-header">Customer Information</div>
+                    <div class="info-grid">
+                        <div class="info-row">
+                            <span class="info-label">UAN</span>
+                            <span class="info-value" id="detailUAN">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Mobile</span>
+                            <span class="info-value" id="detailMobile">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">PF Office</span>
+                            <span class="info-value" id="detailOffice">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="section-header">Grievance Details</div>
+                    <div class="info-grid">
+                        <div class="info-row">
+                            <span class="info-label">Issue Type</span>
+                            <span class="info-value" id="detailIssue">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Status</span>
+                            <span class="info-value" id="detailStatus">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="section-header">Discussion Timeline</div>
+                    <div class="timeline" id="detailTimeline"></div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="section-header">Documents</div>
+                    <div class="document-list" id="documentList"></div>
+                    <button class="btn btn-secondary" id="addDocumentBtn" style="margin-top: 12px;">
+                        📎 Add Document
+                    </button>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="action-btn" id="addUpdateBtn">
+                        <span>📝</span>
+                        Add Update
+                    </button>
+                    <button class="action-btn primary" id="toggleStatusBtn">
+                        <span>✓</span>
+                        <span id="statusBtnText">Mark Resolved</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Modal -->
+    <div class="modal" id="updateModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add Discussion Update</h2>
+                <p class="modal-subtitle">Record a new update</p>
+                <button class="modal-close" id="closeUpdateModal">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="updateForm">
+                    <div class="form-group">
+                        <label class="form-label">Update Message</label>
+                        <textarea class="form-textarea" id="updateMessage" placeholder="Enter update details..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Update</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Upload Modal -->
+    <div class="modal" id="documentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add Document</h2>
+                <p class="modal-subtitle">Upload supporting documents</p>
+                <button class="modal-close" id="closeDocumentModal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">Tap to select file</div>
+                    <div class="upload-hint">PDF, Images, or Documents</div>
+                </div>
+                <input type="file" class="file-input" id="fileInput" accept="image/*,.pdf,.doc,.docx">
+                <div id="selectedFilePreview"></div>
+                <button class="btn btn-primary" id="uploadDocumentBtn" style="display: none;">Upload Document</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Viewer Modal -->
+    <div class="modal" id="viewerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="viewerTitle">Document</h2>
+                <p class="modal-subtitle" id="viewerSubtitle">View document</p>
+                <button class="modal-close" id="closeViewerModal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="doc-viewer" id="docViewer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Storage
+        class GrievanceDB {
+            constructor() {
+                this.storageKey = 'pf_grievances';
+                this.init();
+            }
+
+            init() {
+                if (!localStorage.getItem(this.storageKey)) {
+                    const initialData = {
+                        customers: [
+                            {
+                                name: "Amit Singh",
+                                uan: "111122223333",
+                                mobile: "9000011111",
+                                grievance_no: "GRV001",
+                                pf_office: "Lucknow",
+                                issue_type: "Transfer issue",
+                                status: "Resolved",
+                                documents: [
+                                    {
+                                        name: "amit_passbook.pdf",
+                                        type: "application/pdf",
+                                        size: 245678,
+                                        data: "data:application/pdf;base64,",
+                                        uploadedDate: "2026-01-10"
+                                    }
+                                ],
+                                discussion: [
+                                    { date: "2026-01-10", message: "Case registered" },
+                                    { date: "2026-01-20", message: "Amount credited" }
+                                ]
+                            },
+                            {
+                                name: "Sunil Verma",
+                                uan: "444455556666",
+                                mobile: "9888877777",
+                                grievance_no: "GRV002",
+                                pf_office: "Kanpur",
+                                issue_type: "Name correction",
+                                status: "Pending",
+                                documents: [
+                                    {
+                                        name: "aadhaar.jpg",
+                                        type: "image/jpeg",
+                                        size: 156234,
+                                        data: "data:image/jpeg;base64,",
+                                        uploadedDate: "2026-02-01"
+                                    }
+                                ],
+                                discussion: [
+                                    { date: "2026-02-01", message: "Grievance raised" }
+                                ]
+                            }
+                        ]
+                    };
+                    localStorage.setItem(this.storageKey, JSON.stringify(initialData));
+                }
+            }
+
+            getAll() {
+                const data = JSON.parse(localStorage.getItem(this.storageKey));
+                return data.customers || [];
+            }
+
+            save(customers) {
+                const data = { customers };
+                localStorage.setItem(this.storageKey, JSON.stringify(data));
+            }
+
+            add(grievance) {
+                const customers = this.getAll();
+                const nextNum = customers.length + 1;
+                grievance.grievance_no = `GRV${String(nextNum).padStart(3, '0')}`;
+                grievance.status = 'Pending';
+                grievance.documents = [];
+                grievance.discussion = [{
+                    date: new Date().toISOString().split('T')[0],
+                    message: grievance.initial_message
+                }];
+                delete grievance.initial_message;
+                customers.push(grievance);
+                this.save(customers);
+                return grievance;
+            }
+
+            update(grievanceNo, updates) {
+                const customers = this.getAll();
+                const index = customers.findIndex(c => c.grievance_no === grievanceNo);
+                if (index !== -1) {
+                    customers[index] = { ...customers[index], ...updates };
+                    this.save(customers);
+                    return customers[index];
+                }
+                return null;
+            }
+
+            addDiscussion(grievanceNo, message) {
+                const customers = this.getAll();
+                const index = customers.findIndex(c => c.grievance_no === grievanceNo);
+                if (index !== -1) {
+                    customers[index].discussion.push({
+                        date: new Date().toISOString().split('T')[0],
+                        message: message
+                    });
+                    this.save(customers);
+                    return true;
+                }
+                return false;
+            }
+
+            addDocument(grievanceNo, document) {
+                const customers = this.getAll();
+                const index = customers.findIndex(c => c.grievance_no === grievanceNo);
+                if (index !== -1) {
+                    if (!customers[index].documents) {
+                        customers[index].documents = [];
+                    }
+                    customers[index].documents.push(document);
+                    this.save(customers);
+                    return true;
+                }
+                return false;
+            }
+
+            deleteDocument(grievanceNo, docIndex) {
+                const customers = this.getAll();
+                const index = customers.findIndex(c => c.grievance_no === grievanceNo);
+                if (index !== -1 && customers[index].documents) {
+                    customers[index].documents.splice(docIndex, 1);
+                    this.save(customers);
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        // App State
+        const db = new GrievanceDB();
+        let currentFilter = 'all';
+        let currentGrievance = null;
+        let selectedFile = null;
+
+        // DOM Elements
+        const grievanceList = document.getElementById('grievanceList');
+        const searchInput = document.getElementById('searchInput');
+        const filterBtn = document.getElementById('filterBtn');
+        const addBtn = document.getElementById('addBtn');
+        const addModal = document.getElementById('addModal');
+        const detailModal = document.getElementById('detailModal');
+        const updateModal = document.getElementById('updateModal');
+        const documentModal = document.getElementById('documentModal');
+        const viewerModal = document.getElementById('viewerModal');
+        const grievanceForm = document.getElementById('grievanceForm');
+        const updateForm = document.getElementById('updateForm');
+
+        // Render Functions
+        function updateStats() {
+            const customers = db.getAll();
+            const pending = customers.filter(c => c.status === 'Pending').length;
+            const resolved = customers.filter(c => c.status === 'Resolved').length;
+            
+            document.getElementById('totalCount').textContent = customers.length;
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('resolvedCount').textContent = resolved;
+        }
+
+        function renderGrievances(filter = 'all', search = '') {
+            let customers = db.getAll();
+            
+            // Apply filter
+            if (filter === 'pending') {
+                customers = customers.filter(c => c.status === 'Pending');
+            } else if (filter === 'resolved') {
+                customers = customers.filter(c => c.status === 'Resolved');
+            }
+            
+            // Apply search
+            if (search) {
+                const term = search.toLowerCase();
+                customers = customers.filter(c => 
+                    c.name.toLowerCase().includes(term) ||
+                    c.uan.includes(term) ||
+                    c.mobile.includes(term) ||
+                    c.grievance_no.toLowerCase().includes(term)
+                );
+            }
+
+            if (customers.length === 0) {
+                grievanceList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <div class="empty-text">No grievances found</div>
+                    </div>
+                `;
+                return;
+            }
+
+            grievanceList.innerHTML = customers.map(c => `
+                <div class="grievance-card ${c.status.toLowerCase()}" onclick="showDetail('${c.grievance_no}')">
+                    <div class="card-header">
+                        <div>
+                            <div class="customer-name">${c.name}</div>
+                            <div class="grievance-no">${c.grievance_no}</div>
+                        </div>
+                        <div class="status-badge ${c.status.toLowerCase()}">${c.status}</div>
+                    </div>
+                    <div class="card-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">🏢</span>
+                            <span class="detail-text">${c.pf_office}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">📞</span>
+                            <span class="detail-text">${c.mobile}</span>
+                        </div>
+                    </div>
+                    <div class="issue-type">${c.issue_type}</div>
+                </div>
+            `).join('');
+        }
+
+        function showDetail(grievanceNo) {
+            const customers = db.getAll();
+            const grievance = customers.find(c => c.grievance_no === grievanceNo);
+            if (!grievance) return;
+
+            currentGrievance = grievance;
+
+            document.getElementById('detailName').textContent = grievance.name;
+            document.getElementById('detailGrievanceNo').textContent = grievance.grievance_no;
+            document.getElementById('detailUAN').textContent = grievance.uan;
+            document.getElementById('detailMobile').textContent = grievance.mobile;
+            document.getElementById('detailOffice').textContent = grievance.pf_office;
+            document.getElementById('detailIssue').textContent = grievance.issue_type;
+            document.getElementById('detailStatus').textContent = grievance.status;
+
+            const timeline = document.getElementById('detailTimeline');
+            timeline.innerHTML = grievance.discussion.map(d => `
+                <div class="timeline-item">
+                    <div class="timeline-date">${d.date}</div>
+                    <div class="timeline-message">${d.message}</div>
+                </div>
+            `).join('');
+
+            // Render documents
+            const documentList = document.getElementById('documentList');
+            if (grievance.documents && grievance.documents.length > 0) {
+                documentList.innerHTML = grievance.documents.map((doc, index) => {
+                    const isImage = typeof doc === 'object' && doc.type;
+                    const docName = isImage ? doc.name : doc;
+                    const fileExt = docName.split('.').pop().toLowerCase();
+                    const icon = ['jpg', 'jpeg', 'png', 'gif'].includes(fileExt) ? '🖼️' : '📄';
+                    
+                    return `
+                        <div class="document-item">
+                            <div class="doc-info">
+                                <div class="doc-icon">${icon}</div>
+                                <div class="doc-details">
+                                    <div class="doc-name">${docName}</div>
+                                    <div class="doc-meta">${isImage ? formatFileSize(doc.size) : 'Document'}</div>
+                                </div>
+                            </div>
+                            <div class="doc-actions">
+                                <button class="doc-action-btn" onclick="viewDocument(${index})">👁️</button>
+                                <button class="doc-action-btn" onclick="deleteDocument(${index})">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                documentList.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: var(--slate-500); font-size: 14px;">
+                        No documents uploaded yet
+                    </div>
+                `;
+            }
+
+            const statusBtn = document.getElementById('statusBtnText');
+            statusBtn.textContent = grievance.status === 'Pending' ? 'Mark Resolved' : 'Mark Pending';
+
+            detailModal.classList.add('active');
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function viewDocument(index) {
+            if (!currentGrievance || !currentGrievance.documents[index]) return;
+            
+            const doc = currentGrievance.documents[index];
+            const isObject = typeof doc === 'object' && doc.data;
+            
+            if (isObject) {
+                document.getElementById('viewerTitle').textContent = doc.name;
+                document.getElementById('viewerSubtitle').textContent = `${formatFileSize(doc.size)} • ${doc.type}`;
+                
+                const viewer = document.getElementById('docViewer');
+                if (doc.type.startsWith('image/')) {
+                    viewer.innerHTML = `<img src="${doc.data}" alt="${doc.name}">`;
+                } else {
+                    viewer.innerHTML = `<div class="doc-viewer-text">Preview not available for this file type.<br><br>File: ${doc.name}<br>Size: ${formatFileSize(doc.size)}</div>`;
+                }
+            } else {
+                document.getElementById('viewerTitle').textContent = doc;
+                document.getElementById('viewerSubtitle').textContent = 'Legacy document';
+                document.getElementById('docViewer').innerHTML = `<div class="doc-viewer-text">This is a legacy document reference.<br><br>File: ${doc}</div>`;
+            }
+            
+            viewerModal.classList.add('active');
+        }
+
+        function deleteDocument(index) {
+            if (!currentGrievance) return;
+            
+            if (confirm('Delete this document?')) {
+                db.deleteDocument(currentGrievance.grievance_no, index);
+                showDetail(currentGrievance.grievance_no);
+            }
+        }
+
+        // Event Listeners
+        addBtn.addEventListener('click', () => {
+            grievanceForm.reset();
+            document.getElementById('modalTitle').textContent = 'New Grievance';
+            addModal.classList.add('active');
+        });
+
+        document.getElementById('closeAddModal').addEventListener('click', () => {
+            addModal.classList.remove('active');
+        });
+
+        document.getElementById('closeDetailModal').addEventListener('click', () => {
+            detailModal.classList.remove('active');
+        });
+
+        document.getElementById('closeUpdateModal').addEventListener('click', () => {
+            updateModal.classList.remove('active');
+        });
+
+        document.getElementById('closeDocumentModal').addEventListener('click', () => {
+            documentModal.classList.remove('active');
+            selectedFile = null;
+            document.getElementById('selectedFilePreview').innerHTML = '';
+            document.getElementById('uploadDocumentBtn').style.display = 'none';
+        });
+
+        document.getElementById('closeViewerModal').addEventListener('click', () => {
+            viewerModal.classList.remove('active');
+        });
+
+        grievanceForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const grievance = {
+                name: document.getElementById('inputName').value,
+                uan: document.getElementById('inputUAN').value,
+                mobile: document.getElementById('inputMobile').value,
+                pf_office: document.getElementById('inputOffice').value,
+                issue_type: document.getElementById('inputIssue').value,
+                initial_message: document.getElementById('inputMessage').value
+            };
+
+            db.add(grievance);
+            addModal.classList.remove('active');
+            updateStats();
+            renderGrievances(currentFilter, searchInput.value);
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            renderGrievances(currentFilter, e.target.value);
+        });
+
+        filterBtn.addEventListener('click', () => {
+            const filters = ['all', 'pending', 'resolved'];
+            const currentIndex = filters.indexOf(currentFilter);
+            currentFilter = filters[(currentIndex + 1) % filters.length];
+            
+            filterBtn.classList.toggle('active', currentFilter !== 'all');
+            renderGrievances(currentFilter, searchInput.value);
+        });
+
+        document.getElementById('addUpdateBtn').addEventListener('click', () => {
+            updateModal.classList.add('active');
+        });
+
+        document.getElementById('addDocumentBtn').addEventListener('click', () => {
+            documentModal.classList.add('active');
+        });
+
+        // File upload handling
+        document.getElementById('uploadArea').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            selectedFile = file;
+            const preview = document.getElementById('selectedFilePreview');
+            const uploadBtn = document.getElementById('uploadDocumentBtn');
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const isImage = file.type.startsWith('image/');
+                
+                if (isImage) {
+                    preview.innerHTML = `
+                        <div class="doc-viewer">
+                            <img src="${event.target.result}" alt="${file.name}">
+                        </div>
+                        <div style="margin-top: 12px; padding: 12px; background: var(--slate-800); border-radius: 8px; font-size: 13px; color: var(--slate-300);">
+                            <strong>${file.name}</strong><br>
+                            Size: ${formatFileSize(file.size)}
+                        </div>
+                    `;
+                } else {
+                    preview.innerHTML = `
+                        <div style="margin-top: 12px; padding: 16px; background: var(--slate-800); border-radius: 8px; text-align: center;">
+                            <div style="font-size: 48px; margin-bottom: 8px;">📄</div>
+                            <div style="font-size: 14px; font-weight: 600; color: var(--slate-100); margin-bottom: 4px;">${file.name}</div>
+                            <div style="font-size: 12px; color: var(--slate-500);">${formatFileSize(file.size)}</div>
+                        </div>
+                    `;
+                }
+                
+                uploadBtn.style.display = 'block';
+            };
+
+            if (file.type.startsWith('image/')) {
+                reader.readAsDataURL(file);
+            } else {
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('uploadDocumentBtn').addEventListener('click', () => {
+            if (!selectedFile || !currentGrievance) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const document = {
+                    name: selectedFile.name,
+                    type: selectedFile.type,
+                    size: selectedFile.size,
+                    data: event.target.result,
+                    uploadedDate: new Date().toISOString().split('T')[0]
+                };
+
+                db.addDocument(currentGrievance.grievance_no, document);
+                
+                documentModal.classList.remove('active');
+                selectedFile = null;
+                document.getElementById('selectedFilePreview').innerHTML = '';
+                document.getElementById('uploadDocumentBtn').style.display = 'none';
+                document.getElementById('fileInput').value = '';
+                
+                // Refresh detail view
+                showDetail(currentGrievance.grievance_no);
+            };
+
+            reader.readAsDataURL(selectedFile);
+        });
+
+        document.getElementById('toggleStatusBtn').addEventListener('click', () => {
+            if (!currentGrievance) return;
+            
+            const newStatus = currentGrievance.status === 'Pending' ? 'Resolved' : 'Pending';
+            db.update(currentGrievance.grievance_no, { status: newStatus });
+            
+            detailModal.classList.remove('active');
+            updateStats();
+            renderGrievances(currentFilter, searchInput.value);
+        });
+
+        updateForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            if (!currentGrievance) return;
+            
+            const message = document.getElementById('updateMessage').value;
+            db.addDiscussion(currentGrievance.grievance_no, message);
+            
+            updateModal.classList.remove('active');
+            updateForm.reset();
+            
+            // Refresh detail view
+            showDetail(currentGrievance.grievance_no);
+        });
+
+        // Close modals on background click
+        [addModal, detailModal, updateModal, documentModal, viewerModal].forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+
+        // Initialize
+        updateStats();
+        renderGrievances();
+    </script>
+</body>
+</html>
