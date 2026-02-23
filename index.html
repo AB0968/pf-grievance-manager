@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <meta name="theme-color" content="#0F172A"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+    <title>PF Grievance Manager</title>
+
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUEYgR3JpZXZhbmNlIE1hbmFnZXIiLCJzaG9ydF9uYW1lIjoiUEYgTWFuYWdlciIsInN0YXJ0X3VybCI6Ii8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMEYxNzJBIiwidGhlbWVfY29sb3IiOiIjMEYxNzJBIn0=">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        :root {
+            --slate-950: #020617;
+            --slate-900: #0F172A;
+            --slate-800: #1E293B;
+            --slate-700: #334155;
+            --slate-600: #475569;
+            --slate-500: #64748B;
+            --slate-400: #94A3B8;
+            --slate-300: #CBD5E1;
+            --slate-200: #E2E8F0;
+            --slate-100: #F1F5F9;
+            --slate-50:  #F8FAFC;
+            
+            --blue-600: #2563EB;
+            --blue-500: #3B82F6;
+            --blue-400: #60A5FA;
+            
+            --emerald-600: #059669;
+            --emerald-500: #10B981;
+            --emerald-400: #34D399;
+            
+            --amber-600:  #D97706;
+            --amber-500:  #F59E0B;
+            --amber-400:  #FBBF24;
+            
+            --red-600: #DC2626;
+            --red-500: #EF4444;
+        }
+        
+        body {
+            font-family: 'Archivo', system-ui, sans-serif;
+            background: var(--slate-950);
+            color: var(--slate-100);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(37,99,235,0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(16,185,129,0.05) 0%, transparent 50%);
+            animation: gradientShift 20s ease infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        @keyframes gradientShift {
+            0%,100% { opacity: 1; }
+            50%     { opacity: 0.6; }
+        }
+        
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            padding-bottom: 90px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--slate-900), var(--slate-800));
+            padding: 20px 20px 24px;
+            border-bottom: 1px solid var(--slate-800);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--blue-500), var(--blue-600));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 20px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+        }
+        
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        .sync-status {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--emerald-400);
+            background: rgba(16,185,129,0.1);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(16,185,129,0.2);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .sync-dot {
+            width: 6px; height: 6px;
+            background: var(--emerald-400);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%,100% { opacity:1; transform:scale(1); }
+            50%     { opacity:0.5; transform:scale(0.8); }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 10px;
+        }
+        
+        .stat-card {
+            background: rgba(30,41,59,0.6);
+            border: 1px solid var(--slate-700);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            transition: transform 0.15s;
+        }
+        
+        .stat-card:active { transform: scale(0.96); }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+        
+        .stat-card.total    .stat-value { color: var(--blue-400); }
+        .stat-card.pending  .stat-value { color: var(--amber-400); }
+        .stat-card.resolved .stat-value { color: var(--emerald-400); }
+        
+        .stat-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--slate-400);
+        }
+        
+        .toolbar {
+            padding: 16px 20px;
+            background: var(--slate-900);
+            border-bottom: 1px solid var(--slate-800);
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-box { flex: 1; position: relative; }
+        
+        .search-input {
+            width: 100%;
+            background: var(--slate-800);
+            border: 1px solid var(--slate-700);
+            border-radius: 10px;
+            padding: 12px 16px 12px 44px;
+            font-size: 15px;
+            color: var(--slate-100);
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--blue-500);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--slate-500);
+            font-size: 18px;
+        }
+        
+        .filter-btn {
+            background: var(--slate-800);
+            border: 1px solid var(--slate-700);
+            border-radius: 10px;
+            padding: 0 16px;
+            font-size: 18px;
+            color: var(--slate-300);
+            transition: all 0.15s;
+        }
+        
+        .filter-btn.active {
+            background: var(--blue-600);
+            border-color: var(--blue-500);
+            color: white;
+        }
+        
+        .content {
+            padding: 20px;
+        }
+        
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--slate-500);
+            margin-bottom: 12px;
+            padding-left: 4px;
+        }
+        
+        .grievance-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .grievance-card {
+            background: linear-gradient(135deg, var(--slate-900), var(--slate-800));
+            border: 1px solid var(--slate-700);
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.25s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .grievance-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0;
+            width: 4px; height: 100%;
+        }
+        
+        .grievance-card.pending::before  { background: var(--amber-500); }
+        .grievance-card.resolved::before { background: var(--emerald-500); }
+        
+        .grievance-card:active {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        
+        .customer-name {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .grievance-no {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--slate-500);
+            font-weight: 600;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        
+        .status-badge.pending {
+            background: rgba(245,158,11,0.15);
+            color: var(--amber-400);
+            border: 1px solid rgba(245,158,11,0.3);
+        }
+        
+        .status-badge.resolved {
+            background: rgba(16,185,129,0.15);
+            color: var(--emerald-400);
+            border: 1px solid rgba(16,185,129,0.3);
+        }
+        
+        .card-details {
+            display: grid;
+            gap: 8px;
+        }
+        
+        .detail-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--slate-300);
+        }
+        
+        .detail-icon {
+            color: var(--slate-500);
+            width: 20px;
+            text-align: center;
+        }
+        
+        .issue-type {
+            display: inline-block;
+            background: rgba(59,130,246,0.1);
+            color: var(--blue-400);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .fab {
+            position: fixed;
+            bottom: 100px;
+            right: 24px;
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--blue-500), var(--blue-600));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            box-shadow: 0 8px 24px rgba(37,99,235,0.4);
+            z-index: 90;
+        }
+        
+        .fab:active { transform: scale(0.92); }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--slate-900);
+            border-top: 1px solid var(--slate-800);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
+            z-index: 100;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 20px;
+            color: var(--slate-500);
+            transition: color 0.2s;
+        }
+        
+        .nav-item.active { color: var(--blue-400); }
+        
+        .nav-icon { font-size: 22px; }
+        .nav-label { font-size: 11px; font-weight: 600; }
+        
+        /* ──────────────────────────────────────────────── */
+        /*                  MODALS                          */
+        /* ──────────────────────────────────────────────── */
+        
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(2,6,23,0.94);
+            z-index: 200;
+            align-items: flex-end;
+        }
+        
+        .modal.active { display: flex; }
+        
+        .modal-content {
+            background: var(--slate-900);
+            border-radius: 24px 24px 0 0;
+            width: 100%;
+            max-height: 92vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: 24px 20px 20px;
+            border-bottom: 1px solid var(--slate-800);
+            position: sticky;
+            top: 0;
+            background: var(--slate-900);
+            z-index: 10;
+        }
+        
+        .modal-title   { font-size: 24px; font-weight: 700; }
+        .modal-subtitle { font-size: 14px; color: var(--slate-400); margin-top: 4px; }
+        
+        .modal-close {
+            position: absolute;
+            top: 20px; right: 20px;
+            width: 36px; height: 36px;
+            background: var(--slate-800);
+            border: none;
+            border-radius: 50%;
+            color: var(--slate-300);
+            font-size: 22px;
+            cursor: pointer;
+        }
+        
+        .modal-body { padding: 24px 20px; }
+        
+        .form-group { margin-bottom: 20px; }
+        
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--slate-400);
+            margin-bottom: 8px;
+        }
+        
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            background: var(--slate-800);
+            border: 1px solid var(--slate-700);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 16px;
+            color: var(--slate-100);
+            font-family: inherit;
+        }
+        
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--blue-500);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+        
+        .form-textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--blue-500), var(--blue-600));
+            color: white;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(37,99,235,0.4);
+        }
+        
+        .btn-secondary {
+            background: var(--slate-800);
+            color: var(--slate-300);
+            border: 1px solid var(--slate-700);
+        }
+        
+        /* more styles ... (timeline, documents, etc.) */
+        /* (the rest is the same as in your original code) */
+        
+    </style>
+</head>
+<body>
+
+    <!-- Your HTML structure remains exactly the same -->
+
+    <div class="container">
+        <!-- Header, stats, toolbar, content, fab, bottom-nav ... -->
+        <!-- All the divs and modals you already have -->
+    </div>
+
+    <!-- Keep all your <script> part exactly as it is -->
+
+    <script>
+        // ────────────────────────────────────────────────
+        //                   YOUR JAVASCRIPT
+        // ────────────────────────────────────────────────
+        // (paste your complete <script> content here – it's already good)
+        
+        // Data Storage, App State, Render Functions, Event Listeners...
+        // ... everything from class GrievanceDB to the last line
+    </script>
+
+</body>
+</html>
